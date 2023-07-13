@@ -44,6 +44,9 @@ fn build_cc() {
         build.include("c-blosc2/internal-complibs/zstd-1.5.5");
         build.define("HAVE_ZSTD", None);
     }
+    build.define("HAVE_PLUGINS", None);
+    build.define("SHUFFLE_SSE2_ENABLED", None);
+    build.define("SHUFFLE_AVX2_ENABLED", None);
 
     build.compile("blosc2");
 }
