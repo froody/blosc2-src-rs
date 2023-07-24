@@ -1,53 +1,5 @@
 use std::fs;
 
-use cc::Build;
-
-fn build_cc() {
-    let mut build = cc::Build::new();
-
-    let target_mscv = cfg!(target_env = "msvc");
-    let add_file = |builder: &mut Build, folder: &str| {
-        for entry in fs::read_dir(folder).unwrap() {
-            let path = entry.unwrap().path();
-            if let Some(extension) = path.extension() {
-                if extension == "c" || extension == "cpp" || (!target_mscv && extension == "S") {
-                    builder.file(path);
-                }
-            }
-        }
-    };
-
-    build.include("c-blosc2/include");
-    add_file(&mut build, "c-blosc2/blosc");
-    add_file(&mut build, "c-blosc2/internal-complibs/lz4-1.9.4");
-    add_file(&mut build, "c-blosc2/include");
-
-    build.include("c-blosc2/internal-complibs/lz4-1.9.4");
-    build.define("HAVE_LZ4", None);
-
-    if cfg!(feature = "zlib") {
-        add_file(&mut build, "c-blosc2/internal-complibs/zlib-ng-2.0.7");
-        build.include("c-blosc2/internal-complibs/zlib-ng-2.0.7");
-        build.define("HAVE_ZLIB", None);
-    }
-    if cfg!(feature = "zstd") {
-        add_file(&mut build, "c-blosc2/internal-complibs/zstd-1.5.5/common");
-        add_file(&mut build, "c-blosc2/internal-complibs/zstd-1.5.5/compress");
-        add_file(
-            &mut build,
-            "c-blosc2/internal-complibs/zstd-1.5.5/decompress",
-        );
-        add_file(
-            &mut build,
-            "c-blosc2/internal-complibs/zstd-1.5.5/dictBuilder",
-        );
-        build.include("c-blosc2/internal-complibs/zstd-1.5.5");
-        build.define("HAVE_ZSTD", None);
-    }
-
-    build.compile("blosc2");
-}
-
 #[cfg(feature = "bindgen")]
 fn bindgen_rs() {
     let bindings = bindgen::Builder::default()
@@ -75,11 +27,15 @@ fn bindgen_rs() {
         .write_to_file("src/bindings.rs")
         .expect("Couldn't write bindings!");
 }
+use cmake;
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
-    build_cc();
+    let dst = cmake::build("c-blosc2");
+    println!("cargo:rustc-link-search=native={}/lib", dst.display());
+    println!("cargo:rustc-link-lib=static=blosc2");
+
 
     #[cfg(feature = "bindgen")]
     bindgen_rs();
