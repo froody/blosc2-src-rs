@@ -20,7 +20,7 @@ pub const BLOSC2_CPARAMS_DEFAULTS: blosc2_cparams = blosc2_cparams {
     typesize: 8,
     nthreads: 1,
     blocksize: 0,
-    splitmode: BLOSC_FORWARD_COMPAT_SPLIT,
+    splitmode: BLOSC_FORWARD_COMPAT_SPLIT as i32,
     schunk: null_mut::<c_void>(),
     filters: [0, 0, 0, 0, 0, BLOSC_SHUFFLE as u8],
     filters_meta: [0, 0, 0, 0, 0, 0],
@@ -55,6 +55,7 @@ pub const BLOSC2_DPARAMS_DEFAULTS: blosc2_dparams = blosc2_dparams {
     schunk: null_mut::<c_void>(),
     postfilter: None,
     postparams: null_mut::<blosc2_postfilter_params>(),
+    typesize: 8,
 };
 
 impl Default for blosc2_dparams {
